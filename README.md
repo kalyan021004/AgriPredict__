@@ -1,6 +1,7 @@
 # **AgriPredict – CHAIN X**
+
 ### Smart India Hackathon 2025  
-### **Problem Statement ID: SIH25030**  
+### **Problem Statement ID:** SIH25030  
 ### **AI-Based Crop Recommendation for Farmers**  
 **Theme:** Agriculture, FoodTech & Rural Development  
 **Category:** Software  
@@ -10,192 +11,193 @@
 
 ## 🚀 Project Overview
 
-**AgriPredict** is an AI-driven decision support system that provides **personalized, hyper-local crop recommendations** to Indian farmers using:
+**AgriPredict** is an AI-driven decision support system that provides **personalized, hyper-local crop recommendations** to Indian farmers. It integrates satellite data, weather forecasts, and machine learning to offer precise farming advice without the need for manual soil testing.
 
-- Real-time **NASA SMAP soil moisture & temperature**
-- **Live weather forecast** (OpenWeatherMap One Call 3.0)
-- Soil parameters (**NPK**, **pH**)  
-- **Market trends**
-- **Plant disease detection using images**
-- **Voice-enabled AI chatbot**
-
-✔ **No manual soil testing required**  
-✔ Works on any **smartphone**  
-✔ Designed for **low-connectivity villages (Offline-first PWA)**
+### Key Capabilities
+- Real-time **NASA SMAP soil moisture** analysis  
+- **Live weather forecast** (OpenWeatherMap)  
+- **AI-driven Crop Recommendation** (NPK + pH + Satellite Data)  
+- **Plant Disease Detection** via Image Upload  
+- **Generative AI Chatbot** for farming queries (Voice + Text)  
+- **Market Price Trends** analysis  
 
 ---
 
-## ✅ Key Features (All Working)
+## ✅ Key Features
 
-| Feature | Status | Technology / Data Source |
-|--------|--------|---------------------------|
-| Real-time Satellite Soil Analysis | ✔️ | NASA SMAP L4 (9 km resolution, 3-hour interval) |
-| Live Weather Forecast | ✔️ | OpenWeatherMap One Call API 3.0 |
-| AI Crop Recommendation Engine | ✔️ | Rule-based ML + NASA soil + Weather data |
-| Plant Disease Detection | ✔️ | Image Upload → Diagnosis + Treatment |
-| Market Price Trends | ✔️ | Dynamic chart (mock + real API ready) |
-| AI Chatbot Assistant | ✔️ | Voice + Text |
-| Offline Functionality | ✔️ | PWA + IndexedDB |
-| Responsive Web App | ✔️ | React + Vite |
-
----
-
-## 🌟 Unique Value Propositions (UVP)
-
-- **Satellite-based soil analysis** – No manual lab tests required  
-- **Hyper-local predictions** using NASA + weather + soil parameters  
-- **Voice-first interface** for low literacy farmers  
-- **Offline mode** for rural regions  
-- **Professional English UI** for SIH jury presentation  
+| Feature | Technology / Data Source |
+|------|---------------------------|
+| Satellite Soil Analysis | NASA SMAP L4 Data (9 km resolution) |
+| Weather Insights | OpenWeatherMap One Call API 3.0 |
+| Crop Recommendation | Hybrid Engine (Rule-based ML + Satellite Data) |
+| Disease Diagnosis | Computer Vision (Image Processing) |
+| Smart Chatbot | GenAI / LLM Integration (OpenRouter) |
+| Market Intelligence | Historical price trends & prediction |
+| Secure Authentication | JWT & BCrypt (Node.js Middleware) |
 
 ---
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|-------|------------|
-| **Frontend** | React.js + Vite + PWA |
-| **Backend** | Node.js + Express |
-| **APIs** | NASA SMAP, OpenWeatherMap One Call 3.0 |
-| **State Management** | React Context API |
-| **Styling** | Vanilla CSS |
-| **Deployment** | Static Frontend + Node Backend |
+|-----|------------|
+| Frontend | React.js, Vite, PWA, CSS Modules |
+| Backend | Node.js, Express.js, MongoDB (Mongoose) |
+| ML Models | Node.js Logic, Mock ML Server |
+| AI / LLM | OpenRouter API |
+| APIs | NASA Earthdata, OpenWeatherMap |
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Structure
 
-```
+```bash
 AgriPredict/
-├── backend                     # Node.js + Express server
+├── backend/
+│   ├── src/
+│   │   ├── main.js
+│   │   ├── gen_ai/
+│   │   └── models/
 │   ├── server.js
-│   ├── package.json
-│   └── .env                    # Your API keys
+│   ├── .env
+│   └── package.json
 │
-├── frontend                    # React + Vite (PWA)
-│   ├── src
-│   │   ├── pages               # All feature pages
-│   │   ├── services            # API calls
-│   │   ├── context             # Global state
-│   │   ├── utils               # Helper functions
-│   │   └── App.jsx, main.jsx
+├── agripredict-react-app/
+│   ├── src/
 │   ├── vite.config.js
 │   └── package.json
 │
-└── README.md                
+├── ml_models/
+│   ├── mock_server.js
+│   ├── cropLogic.js
+│   └── package.json
+│
+└── README.md
 ```
 
 ---
 
 ## 🧩 How to Run the Project
 
-### **1️⃣ Clone Repository**
+This project consists of **three services**:
+1. ML Models  
+2. Backend  
+3. Frontend  
+
+---
+
+## 1️⃣ Prerequisites
+
+- Node.js & npm  
+- MongoDB Atlas or Local MongoDB  
+- OpenRouter API Key  
+
+---
+
+## 2️⃣ Run ML Models (Mock)
 
 ```bash
-git clone https://github.com/your-username/AgriPredict-CHAINX.git
-cd AgriPredict-CHAINX
+cd AgriPredict/ml_models
+npm install
+node mock_server.js
 ```
 
----
-
-## **2️⃣ Get API Keys**
-
-| Service | Link | Free Tier |
-|---------|------|----------|
-| **OpenWeatherMap** | https://openweathermap.org/api | ✔️ Yes |
-| **NASA Earthdata Token** | https://urs.earthdata.nasa.gov → Profile → Tokens | ✔️ Yes |
+📍 Runs on **http://localhost:6001**
 
 ---
 
-## **3️⃣ Setup Backend**
+## 3️⃣ Setup & Run Backend
 
 ```bash
-cd backend
+cd AgriPredict/backend
 npm install
 ```
 
-Create `.env`:
+### 🔐 Environment Variables (`.env`)
 
-```bash
-cp .env.example .env
+Create a `.env` file inside `backend/` and configure as follows:
+
+```env
+PORT=5001
+
+# =========================
+# OPENROUTER (LLM)
+# =========================
+OPENROUTER_API_KEY=your_openrouter_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=your_openrouter_model
+
+OPENROUTER_SITE_URL=http://localhost:5173
+OPENROUTER_SITE_NAME=your_openrouter_site_name
+
+# =========================
+# ML & AUDIO CONFIG
+# =========================
+USE_MOCK_ML=true
+USE_MOCK_AUDIO=true
+AUDIO_STORAGE_PATH=./data/audio
+
+# =========================
+# DATABASE (MongoDB Atlas)
+# =========================
+MONGO_URI=your_Mongodb_url
+
+# =========================
+# AUTH (JWT)
+# =========================
+JWT_SECRET=your_JWT_secret_key
+JWT_EXPIRES_IN=7d
 ```
 
-Add:
-
-```
-OPENWEATHER_API_KEY=your_openweather_key
-NASA_EARTHDATA_TOKEN=your_nasa_token
-```
-
-Start backend:
+### Start Backend
 
 ```bash
 npm run dev
-# Running on http://localhost:5000
 ```
+
+📍 Backend runs on **http://localhost:5001**
 
 ---
 
-## **4️⃣ Setup Frontend**
+## 4️⃣ Setup & Run Frontend
 
 ```bash
-cd frontend
+cd AgriPredict/agripredict-react-app
 npm install
 npm run dev
 ```
 
-Open browser:  
-👉 http://localhost:5173/
+📍 Frontend runs on **http://localhost:5173**
 
 ---
 
-# 🎥 Demo Flow (For SIH Jury)
+## 🎥 Demo Features
 
-### **1. Crop Recommendation**
-- Input sample:  
-  `90, 42, 43 | pH: 6.5 | Weather: 26°C, 82% humidity`
-- Output: **Rice Recommendation** (with NASA soil moisture + confidence)
+### 🌾 Crop Recommendation
+- Fetches user location (Lat/Lon)
+- Uses NASA SMAP soil moisture
+- Takes NPK input
+- Returns AI-based crop suggestion
 
-### **2. Weather Insights**
-- Allow location → Shows hyper-local farming advice
+### 🌿 Disease Detection
+- Upload leaf image
+- ML mock server analyzes disease
+- Treatment recommendation shown
 
-### **3. Disease Detection**
-- Upload a leaf image → Instant disease diagnosis + treatment
+### 🤖 AI Chatbot
+- Text + Voice-based farming queries
+- Powered by OpenRouter LLM
 
-### **4. AI Chatbot**
-- Supports **Voice + Text**  
-- Answers real farming queries
-
-### **5. Offline Mode**
-- Turn off internet → App still works (PWA cached)
-
----
-
-## 📸 Recommended Screenshots for Submission
-
-- Home Page  
-- Crop Recommendation result (with NASA soil %)  
-- Weather Forecast Page  
-- Disease Detection Result  
-- Chatbot Screen  
-- Offline Mode working  
+### 🌦️ Weather
+- Real-time location-based weather forecast
 
 ---
 
-# 🏆 Team CHAIN X – Smart India Hackathon 2025
+## 🏁 Conclusion
 
-Built in **48 hours** with passion for helping Indian farmers.
-
-**"From Satellite to Sowing – One Click, Better Harvest"**
+**AgriPredict – CHAIN X** is a scalable, AI-powered agricultural platform designed for Indian farmers, enabling data-driven decisions using satellite intelligence and generative AI.
 
 ---
 
-## 📞 Support & Contact
-
-**WhatsApp:** +91-XXXXXXXXXX  
-**Email:** chainx.sih2025@gmail.com  
-
----
-
-## 🎯 Problem Statement: SIH25030  
-### December 2025
+### 📌 Smart India Hackathon 2025  
+**Theme:** Agriculture, FoodTech & Rural Development  
