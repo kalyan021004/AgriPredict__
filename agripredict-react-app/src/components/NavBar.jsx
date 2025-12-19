@@ -71,6 +71,7 @@ export default function Navbar() {
                   color: "white",
                   padding: "8px 20px",
                   marginLeft: "8px",
+                  marginRight: "12px",
                 }}
               >
                 Register
@@ -80,15 +81,15 @@ export default function Navbar() {
             <button
               onClick={logout}
               style={{
+                margin: "0",          
+                marginLeft: "8px",
+                marginRight: "18px",
                 background: "#d32f2f",
                 color: "white",
-                padding: "8px 20px",
-                borderRadius: "6px",
-                fontSize: "0.95rem",
-                fontWeight: "600",
+                padding: "8px 16px",
+                borderRadius: "10px",
                 border: "none",
                 cursor: "pointer",
-                marginLeft: "8px",
               }}
             >
               Logout

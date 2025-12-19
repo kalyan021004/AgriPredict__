@@ -73,7 +73,7 @@ export default function Crop() {
         />
 
         <button onClick={submit} disabled={loading}>
-          🚀 {loading ? "Predicting..." : "Predict Best Crop"}
+           {loading ? "Predicting..." : "Predict Best Crop"}
         </button>
 
         {error && <p className="error">{error}</p>}
