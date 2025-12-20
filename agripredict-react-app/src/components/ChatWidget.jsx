@@ -1,212 +1,305 @@
 "use client"
 
-import { useState, useContext } from "react"
-import { chatAPI } from "../api/genaiApi"
-import { AuthContext } from "../context/AuthContext"
+import { useState, useContext, useEffect, useRef } from "react"
+import { chatAPI } from "../api/genaiApi" //
+import { AuthContext } from "../context/AuthContext" //
+import { startListening } from "../utils/voice" //
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [msg, setMsg] = useState("")
+  const [isListening, setIsListening] = useState(false)
   const [messages, setMessages] = useState([
-    { role: "ai", text: "Hi! Ask me anything about farming." },
+    { role: "ai", text: "Hello! I'm your AgriAssistant. How can I help you today?" },
   ])
+  const [isLoading, setIsLoading] = useState(false)
   const { token } = useContext(AuthContext)
+  const messagesEndRef = useRef(null)
 
+  // Auto-scroll to the newest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // --- Voice Logic ---
+  const handleVoiceInput = () => {
+    if (isListening) return
+
+    setIsListening(true)
+    startListening(
+      (text) => {
+        // Append spoken text to existing text so user can mix typing + voice
+        setMsg((prev) => (prev ? prev + " " + text : text))
+        setIsListening(false)
+      },
+      () => {
+        // Reset listening state on end or error
+        setIsListening(false)
+      }
+    )
+  }
+
+  // --- Send Logic ---
   async function send() {
-    if (!token) return alert("Please login to chat")
+    if (!token) return alert("Please login to use the assistant.")
     if (!msg.trim()) return
 
-    const userMessage = { role: "user", text: msg }
-    const updatedMessages = [...messages, userMessage]
-    setMessages(updatedMessages)
-    setMsg("")
+    const userText = msg.trim()
+    setMsg("") // Clear input immediately
+    
+    // Add User Message
+    setMessages((prev) => [...prev, { role: "user", text: userText }])
+    setIsLoading(true)
 
     try {
-      const res = await chatAPI(msg, token)
-      setMessages([...updatedMessages, { role: "ai", text: res.answer }])
+      const res = await chatAPI(userText, token)
+      // Add AI Response
+      setMessages((prev) => [...prev, { role: "ai", text: res.answer }])
     } catch (error) {
-      setMessages([
-        ...updatedMessages,
-        { role: "ai", text: "Error fetching response." },
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "I'm having trouble connecting. Please try again." },
       ])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // --- Professional Styles (CSS-in-JS) ---
+  const styles = {
+    wrapper: {
+      position: "fixed",
+      bottom: "30px",
+      right: "30px",
+      zIndex: 9999,
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+    },
+    toggleBtn: {
+      width: "60px",
+      height: "60px",
+      borderRadius: "50%",
+      background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+      color: "white",
+      border: "none",
+      boxShadow: "0 4px 20px rgba(46, 125, 50, 0.4)",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "28px",
+      transition: "transform 0.2s ease",
+    },
+    chatWindow: {
+      width: "380px",
+      height: "600px",
+      background: "#fff",
+      borderRadius: "20px",
+      boxShadow: "0 12px 48px rgba(0,0,0,0.12)",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      marginBottom: "20px",
+      border: "1px solid #f0f0f0",
+      animation: "slideUp 0.3s ease-out",
+    },
+    header: {
+      padding: "20px",
+      background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+      color: "white",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    headerTitle: {
+      fontWeight: "600",
+      fontSize: "18px",
+      marginBottom: "2px",
+    },
+    headerStatus: {
+      fontSize: "12px",
+      opacity: 0.9,
+      display: "flex",
+      alignItems: "center",
+      gap: "6px",
+    },
+    onlineDot: {
+      width: "8px",
+      height: "8px",
+      background: "#4caf50",
+      borderRadius: "50%",
+      boxShadow: "0 0 0 2px rgba(255,255,255,0.2)",
+    },
+    closeBtn: {
+      background: "rgba(255,255,255,0.2)",
+      border: "none",
+      color: "white",
+      width: "32px",
+      height: "32px",
+      borderRadius: "50%",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    messagesArea: {
+      flex: 1,
+      padding: "20px",
+      background: "#f5f7fa",
+      overflowY: "auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: "16px",
+    },
+    bubble: (isUser) => ({
+      maxWidth: "80%",
+      padding: "12px 16px",
+      borderRadius: "16px",
+      fontSize: "14px",
+      lineHeight: "1.5",
+      color: isUser ? "#fff" : "#1a1a1a",
+      background: isUser ? "linear-gradient(135deg, #43a047 0%, #2e7d32 100%)" : "#fff",
+      alignSelf: isUser ? "flex-end" : "flex-start",
+      boxShadow: isUser ? "0 4px 12px rgba(46, 125, 50, 0.2)" : "0 2px 8px rgba(0,0,0,0.05)",
+      borderBottomRightRadius: isUser ? "4px" : "16px",
+      borderBottomLeftRadius: isUser ? "16px" : "4px",
+    }),
+    footer: {
+      padding: "16px",
+      background: "#fff",
+      borderTop: "1px solid #eee",
+    },
+    inputContainer: {
+      display: "flex",
+      alignItems: "center",
+      background: "#f8f9fa",
+      border: "1px solid #e1e4e8",
+      borderRadius: "24px",
+      padding: "4px 8px 4px 16px",
+      gap: "8px",
+      transition: "border-color 0.2s",
+    },
+    input: {
+      flex: 1,
+      border: "none",
+      background: "transparent",
+      padding: "10px 0",
+      fontSize: "14px",
+      outline: "none",
+      color: "#333",
+    },
+    micBtn: {
+      width: "36px",
+      height: "36px",
+      borderRadius: "50%",
+      border: "none",
+      background: isListening ? "#ffebee" : "transparent",
+      color: isListening ? "#d32f2f" : "#555",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "all 0.2s",
+    },
+    sendBtn: {
+      width: "40px",
+      height: "40px",
+      borderRadius: "50%",
+      border: "none",
+      background: msg.trim() ? "#2e7d32" : "#e0e0e0",
+      color: "white",
+      cursor: msg.trim() ? "pointer" : "default",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "all 0.2s",
+    },
+    typing: {
+      fontSize: "12px",
+      color: "#666",
+      marginLeft: "16px",
+      marginBottom: "8px",
+      fontStyle: "italic",
     }
   }
 
   return (
-    <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 9999 }}>
-      {/* Chat Window */}
-      {isOpen && (
-        <div
-          className="card"
-          style={{
-            width: "420px",
-            height: "600px",
-            marginBottom: "10px",
-            display: "flex",
-            flexDirection: "column",
-            padding: 0,
-            overflow: "hidden",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
-            borderRadius: "16px",
-          }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
-              color: "white",
-              padding: "18px 20px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "24px" }}>🌱</span>
-              <div>
-                <div style={{ fontWeight: "600", fontSize: "16px" }}>
-                  AgriBot Assistant
-                </div>
-                <div style={{ fontSize: "12px", opacity: 0.9 }}>
-                  Online • Ready to help
-                </div>
-              </div>
-            </div>
+    <div style={styles.wrapper}>
+      {/* Dynamic Keyframes for animation */}
+      <style>{`
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseRed { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+      `}</style>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              style={{
-                background: "rgba(255,255,255,0.2)",
-                color: "white",
-                border: "none",
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                cursor: "pointer",
-                fontSize: "18px",
-              }}
-            >
-              ✕
-            </button>
+      {isOpen ? (
+        <div style={styles.chatWindow}>
+          {/* Header */}
+          <div style={styles.header}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+               {/* Logo placeholder if you want one, or just text */}
+               <img src="/rsz_agripredict_logo.png" alt="" style={{height: "28px"}} />
+               <div>
+                  <div style={styles.headerTitle}>AgriBot</div>
+                  <div style={styles.headerStatus}>
+                    <span style={styles.onlineDot}></span> Online
+                  </div>
+               </div>
+            </div>
+            <button onClick={() => setIsOpen(false)} style={styles.closeBtn}>✕</button>
           </div>
 
           {/* Messages */}
-          <div
-            style={{
-              flex: 1,
-              padding: "20px",
-              overflowY: "auto",
-              background: "#f8faf9",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-            }}
-          >
+          <div style={styles.messagesArea}>
             {messages.map((m, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  justifyContent:
-                    m.role === "user" ? "flex-end" : "flex-start",
-                }}
-              >
-                <div
-                  style={{
-                    background:
-                      m.role === "user"
-                        ? "linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)"
-                        : "white",
-                    color: m.role === "user" ? "white" : "#24292e",
-                    padding: "12px 16px",
-                    borderRadius:
-                      m.role === "user"
-                        ? "16px 16px 4px 16px"
-                        : "16px 16px 16px 4px",
-                    maxWidth: "75%",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                    fontSize: "14px",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {m.text}
-                </div>
+              <div key={i} style={styles.bubble(m.role === "user")}>
+                {m.text}
               </div>
             ))}
+            {isLoading && <div style={styles.typing}>AgriBot is typing...</div>}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div
-            style={{
-              padding: "14px 16px",
-              borderTop: "1px solid #e1e4e8",
-              display: "flex",
-              gap: "8px",
-              background: "white",
-              alignItems: "center",
-            }}
-          >
-            {/* Text Input – takes maximum width */}
-            <input
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-              placeholder="Type your question..."
-              style={{
-                flex: 1,                 // 🔥 THIS makes it wide
-                padding: "12px 14px",
-                border: "2px solid #e1e4e8",
-                borderRadius: "10px",
-                fontSize: "14px",
-                outline: "none",
-                height:"30px"
-              }}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-            />
+          {/* Input Area (Voice + Text) */}
+          <div style={styles.footer}>
+            <div style={styles.inputContainer}>
+              <input
+                style={styles.input}
+                placeholder="Type or use voice..."
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && send()}
+              />
+              
+              {/* Voice Button */}
+              <button 
+                onClick={handleVoiceInput}
+                style={{
+                  ...styles.micBtn,
+                  animation: isListening ? "pulseRed 1.5s infinite" : "none"
+                }}
+                title={isListening ? "Listening..." : "Click to Speak"}
+              >
+                {/* Microphone Icon */}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+              </button>
 
-            {/* Send Button – small & compact */}
-            <button
-              onClick={send}
-              style={{
-                width: "46px",            // 🔥 small width
-                height: "40px",
-                background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
-                color: "white",
-                border: "none",
-                borderRadius: "50%",      // round icon button
-                cursor: "pointer",
-                fontSize: "18px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,  
-                          // 🔥 prevents shrinking
-              }}
-            >
-              ➤
-            </button>
+              {/* Send Button */}
+              <button onClick={send} style={styles.sendBtn} disabled={!msg.trim()}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
           </div>
-
         </div>
-      )}
-
-      {/* Floating Toggle Button */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          style={{
-            width: "70px",
-            height: "70px",
-            paddingTop:"2px",
-          
-            borderRadius: "50%",
-            background:
-              "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
-            color: "white",
-            fontSize: "32px",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 6px 20px rgba(46, 125, 50, 0.4)",
-          }}
+      ) : (
+        /* Floating Action Button */
+        <button 
+          onClick={() => setIsOpen(true)} 
+          style={styles.toggleBtn}
         >
           💬
         </button>
