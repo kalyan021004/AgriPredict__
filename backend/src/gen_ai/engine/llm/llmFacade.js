@@ -5,26 +5,40 @@ import { openaiClient } from "./openaiClient.js";
 ========================= */
 export async function chat(prompt) {
   try {
-    const res = await openaiClient.chat.completions.create({
-      model: process.env.OPENROUTER_MODEL,
-      messages: [{ role: "user", content: prompt }]
-    });
+    const response = await fetch(
+      `${process.env.OPENROUTER_BASE_URL}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "HTTP-Referer": process.env.OPENROUTER_SITE_URL,
+          "X-Title": process.env.OPENROUTER_SITE_NAME
+        },
+        body: JSON.stringify({
+          model: process.env.OPENROUTER_MODEL,
+          messages: [{ role: "user", content: prompt }]
+        })
+      }
+    );
 
-    // ✅ Defensive parsing (CRITICAL)
-    const content =
-      res?.choices?.[0]?.message?.content ||
-      res?.choices?.[0]?.delta?.content;
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`OpenRouter error: ${errText}`);
+    }
 
+    const data = await response.json();
+
+    const content = data?.choices?.[0]?.message?.content;
     if (!content) {
-      console.error("INVALID LLM RESPONSE:", JSON.stringify(res, null, 2));
-      throw new Error("Empty response from LLM");
+      throw new Error("No content returned from OpenRouter");
     }
 
     return content;
 
   } catch (err) {
-    console.error("LLM ERROR FULL:", err);
-    throw err; // ❗ DO NOT MASK ERROR
+    console.error("OPENROUTER LLM ERROR:", err);
+    throw err;
   }
 }
 
