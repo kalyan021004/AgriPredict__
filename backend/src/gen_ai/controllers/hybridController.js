@@ -12,14 +12,20 @@ export async function hybridController(req, res) {
     // 1️⃣ ML Prediction
     const mlResult = await getCropRecommendation(req.body);
 
-    if (!mlResult) {
-      throw new Error("ML result is empty");
+    // ✅ Validate ML output
+    if (!mlResult || !mlResult.crop) {
+      throw new Error("Invalid ML result");
     }
 
-    // 2️⃣ AI Explanation
-    const explanation = await explainMLResult(mlResult);
+    // 2️⃣ AI Explanation (SAFE)
+    let explanation = "AI explanation currently unavailable.";
+    try {
+      explanation = await explainMLResult(mlResult);
+    } catch (aiErr) {
+      console.error("AI EXPLANATION FAILED:", aiErr.message);
+    }
 
-    // 3️⃣ Save history
+    // 3️⃣ Save history (always save ML result)
     await CropHistory.create({
       user: req.user._id,
       input: req.body,
@@ -29,9 +35,9 @@ export async function hybridController(req, res) {
       }
     });
 
-    // 4️⃣ FINAL RESPONSE (IMPORTANT)
-    res.json({
-      crop: mlResult,          // ✅ frontend expects this
+    // 4️⃣ Final response (never crashes frontend)
+    return res.json({
+      crop: mlResult,
       explanation
     });
 
@@ -39,7 +45,7 @@ export async function hybridController(req, res) {
     console.error("HYBRID ERROR:", err.message);
     console.error(err.stack);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "Crop recommendation failed"
     });
   }

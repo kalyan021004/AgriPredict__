@@ -1,18 +1,29 @@
 const BASE = import.meta.env.VITE_API_BASE;
 
 export async function cropAPI(data) {
-  const token = localStorage.getItem("token"); // 👈 GET TOKEN
+  const token = localStorage.getItem("token");
 
   const res = await fetch(`${BASE}/genai/hybrid`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}` // 👈 SEND TOKEN
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify(data)
   });
 
-  return res.json();
+  const json = await res.json();
+
+  // 🔥 IMPORTANT
+  if (!res.ok) {
+    throw new Error(json.error || "Server error");
+  }
+
+  if (!json.crop) {
+    throw new Error("Invalid response from server");
+  }
+
+  return json;
 }
 
 /* AI Chat */

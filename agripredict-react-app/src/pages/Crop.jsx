@@ -86,7 +86,7 @@ export default function Crop() {
         {error && <p className="error">{error}</p>}
       </div>
 
-      {result && (
+      {result && result.crop && (
         <div className="result-card">
           <h3>✅ Recommended Crop</h3>
           <h2>{result.crop.crop}</h2>

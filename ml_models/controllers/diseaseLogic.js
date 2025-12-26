@@ -1,8 +1,11 @@
 export function detectDisease({ crop, symptoms }) {
+  const cropName = crop.toLowerCase();
+  const symptomText = symptoms.map(s => s.toLowerCase());
+
   if (
-    crop === "Tomato" &&
-    symptoms.includes("yellow leaves") &&
-    symptoms.includes("curling")
+    cropName === "tomato" &&
+    symptomText.includes("yellow leaves") &&
+    symptomText.includes("curling")
   ) {
     return {
       disease: "Leaf Curl Virus",
@@ -12,8 +15,8 @@ export function detectDisease({ crop, symptoms }) {
   }
 
   if (
-    crop === "Rice" &&
-    symptoms.includes("brown spots")
+    cropName === "rice" &&
+    symptomText.includes("brown spots")
   ) {
     return {
       disease: "Brown Spot Disease",
