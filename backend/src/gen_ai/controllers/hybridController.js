@@ -4,15 +4,19 @@ import { explainMLResult } from "../engine/pipelines/hybridPipeline.js";
 
 export async function hybridController(req, res) {
   try {
-    // 🔐 Safety check
+    // 🔐 Auth safety
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // 1️⃣ ML
+    // 1️⃣ ML Prediction
     const mlResult = await getCropRecommendation(req.body);
 
-    // 2️⃣ AI explanation
+    if (!mlResult) {
+      throw new Error("ML result is empty");
+    }
+
+    // 2️⃣ AI Explanation
     const explanation = await explainMLResult(mlResult);
 
     // 3️⃣ Save history
@@ -20,20 +24,23 @@ export async function hybridController(req, res) {
       user: req.user._id,
       input: req.body,
       result: {
-        mlResult,
+        crop: mlResult,
         explanation
       }
     });
 
-    // 4️⃣ Respond
+    // 4️⃣ FINAL RESPONSE (IMPORTANT)
     res.json({
-      ml_result: mlResult,
+      crop: mlResult,          // ✅ frontend expects this
       explanation
     });
 
   } catch (err) {
     console.error("HYBRID ERROR:", err.message);
     console.error(err.stack);
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: "Crop recommendation failed"
+    });
   }
 }
