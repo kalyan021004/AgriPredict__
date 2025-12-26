@@ -80,10 +80,10 @@ export default function Disease() {
 
             <div className="form-group">
               <label>Crop Name</label>
-              <input 
-                placeholder="e.g. Tomato, Wheat, Rice" 
-                value={crop} 
-                onChange={(e) => setCrop(e.target.value)} 
+              <input
+                placeholder="e.g. Tomato, Wheat, Rice"
+                value={crop}
+                onChange={(e) => setCrop(e.target.value)}
               />
             </div>
 
@@ -108,10 +108,10 @@ export default function Disease() {
 
             <div className="form-group">
               <label>Crop Name</label>
-              <input 
-                placeholder="e.g. Tomato, Potato" 
-                value={crop} 
-                onChange={(e) => setCrop(e.target.value)} 
+              <input
+                placeholder="e.g. Tomato, Potato"
+                value={crop}
+                onChange={(e) => setCrop(e.target.value)}
               />
             </div>
 
@@ -139,14 +139,24 @@ export default function Disease() {
         {/* Results */}
         {result && (
           <div className="card results-card">
-            <h3 className="results-header">
-              📊 Detection Results
-            </h3>
-            <pre className="results-content">
-              {JSON.stringify(result, null, 2)}
-            </pre>
+            <h3 className="results-header">📊 Detection Results</h3>
+
+            {result.disease && (
+              <>
+                <p><strong>Disease:</strong> {result.disease.disease}</p>
+                <p><strong>Confidence:</strong> {Math.round(result.disease.confidence * 100)}%</p>
+                <p><strong>Severity:</strong> {result.disease.severity}</p>
+              </>
+            )}
+
+            {result.explanation && (
+              <pre className="results-content">
+                {result.explanation}
+              </pre>
+            )}
           </div>
         )}
+
       </div>
     </div>
   )

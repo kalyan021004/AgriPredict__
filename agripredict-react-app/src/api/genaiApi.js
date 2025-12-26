@@ -1,4 +1,52 @@
+
 const BASE = import.meta.env.VITE_API_BASE;
+
+/* =========================
+   DISEASE (TEXT)
+========================= */
+export async function diseaseAPI(data) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE}/genai/disease`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.error || "Disease detection failed");
+  }
+
+  return json;
+}
+
+/* =========================
+   DISEASE (IMAGE)
+========================= */
+export async function diseaseImageAPI(formData) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE}/genai/disease-image`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.error || "Image detection failed");
+  }
+
+  return json;
+}
 
 export async function cropAPI(data) {
   const token = localStorage.getItem("token");
@@ -55,33 +103,4 @@ export async function getCropHistory() {
   return res.json();
 }
 
-
-export async function diseaseAPI(data) {
-  const token = localStorage.getItem("token"); // 👈 GET TOKEN
-
-  const res = await fetch(`${BASE}/disease`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}` // 👈 SEND TOKEN
-    },
-    body: JSON.stringify(data)
-  });
-
-  return res.json();
-}
-
-export async function diseaseImageAPI(formData) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${BASE}/genai/disease-image`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  return res.json();
-}
 
