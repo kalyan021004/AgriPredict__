@@ -1,22 +1,55 @@
 import { openaiClient } from "./openaiClient.js";
 
 /* =========================
+   ENV VALIDATION (RUNS ON START)
+========================= */
+const REQUIRED_ENVS = [
+  "OPENROUTER_API_KEY",
+  "OPENROUTER_MODEL",
+  "OPENROUTER_SITE_URL",
+  "OPENROUTER_SITE_NAME"
+];
+
+for (const key of REQUIRED_ENVS) {
+  if (!process.env[key]) {
+    console.error(`❌ Missing ENV: ${key}`);
+  }
+}
+
+/* =========================
    CORE CHAT
 ========================= */
 export async function chat(prompt) {
   try {
+    if (!process.env.OPENROUTER_MODEL) {
+      throw new Error("OPENROUTER_MODEL is undefined");
+    }
+
     const res = await openaiClient.chat.completions.create({
       model: process.env.OPENROUTER_MODEL,
       messages: [{ role: "user", content: prompt }]
     });
 
-    return res.choices[0].message.content;
-  } catch (err) {
-  console.error("OPENROUTER STATUS:", err?.response?.status);
-  console.error("OPENROUTER DATA:", err?.response?.data);
-  throw new Error("LLM service failed");
-}
+    if (!res?.choices?.length) {
+      throw new Error("Empty response from OpenRouter");
+    }
 
+    return res.choices[0].message.content;
+
+  } catch (err) {
+    /* 🔥 REAL diagnostics */
+    console.error("====== OPENROUTER ERROR ======");
+    console.error("Message:", err.message);
+    console.error("Name:", err.name);
+    console.error("Stack:", err.stack);
+
+    // OpenAI SDK does NOT use err.response like axios
+    if (err?.error) {
+      console.error("SDK Error Object:", err.error);
+    }
+
+    throw new Error("LLM service failed");
+  }
 }
 
 /* =========================
