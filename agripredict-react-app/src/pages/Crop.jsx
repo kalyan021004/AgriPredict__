@@ -24,17 +24,21 @@ export default function Crop() {
 
     try {
       setLoading(true);
-      const data = await cropAPI(
-        {
-          soil,
-          rainfall: Number(rainfall),
-          temperature: Number(temperature)
-        },
-        token
-      );
+
+      const data = await cropAPI({
+        soil,
+        rainfall: Number(rainfall),
+        temperature: Number(temperature)
+      });
+
+      if (!data || !data.crop) {
+        throw new Error("Invalid response from server");
+      }
+
       setResult(data);
     } catch (err) {
-      setError("Failed to fetch recommendation");
+      console.error(err);
+      setError("Failed to fetch crop recommendation");
     } finally {
       setLoading(false);
     }
@@ -42,7 +46,10 @@ export default function Crop() {
 
   return (
     <div className="crop-container">
-      <h1>Get AI-powered crop recommendations based on your soil and weather conditions</h1>
+      <h1>
+        Get AI-powered crop recommendations based on your soil and weather
+        conditions
+      </h1>
 
       <div className="form-card">
         <h3>📋 Enter Field Details</h3>
@@ -73,42 +80,45 @@ export default function Crop() {
         />
 
         <button onClick={submit} disabled={loading}>
-           {loading ? "Predicting..." : "Predict Best Crop"}
+          {loading ? "Predicting..." : "Predict Best Crop"}
         </button>
 
         {error && <p className="error">{error}</p>}
       </div>
 
       {result && (
-  <div className="result-card">
-    <h3>✅ Recommended Crop</h3>
-    <h2>{result.ml_result.crop}</h2>
+        <div className="result-card">
+          <h3>✅ Recommended Crop</h3>
+          <h2>{result.crop.crop}</h2>
 
-    <p className="desc">
-      {result.ml_result.reasoning}
-    </p>
+          <p className="desc">
+            {result.crop.reasoning || "No reasoning available"}
+          </p>
 
-    <div className="stats">
-      <div>
-        <span>CONFIDENCE SCORE</span>
-        <h2>{Math.round(result.ml_result.confidence * 100)}%</h2>
-      </div>
+          <div className="stats">
+            <div>
+              <span>CONFIDENCE SCORE</span>
+              <h2>
+                {result.crop.confidence
+                  ? Math.round(result.crop.confidence * 100) + "%"
+                  : "N/A"}
+              </h2>
+            </div>
 
-      <div>
-        <span>EXPECTED YIELD</span>
-        <h2>{result.ml_result.expected_yield}</h2>
-      </div>
-    </div>
+            <div>
+              <span>EXPECTED YIELD</span>
+              <h2>{result.crop.expected_yield || "N/A"}</h2>
+            </div>
+          </div>
 
-    <div style={{ marginTop: "15px", color: "#2e7d32" }}>
-      <strong>Explanation:</strong>
-      <pre style={{ whiteSpace: "pre-wrap" }}>
-        {result.explanation}
-      </pre>
-    </div>
-  </div>
-)}
-
+          <div style={{ marginTop: "15px", color: "#2e7d32" }}>
+            <strong>AI Explanation:</strong>
+            <pre style={{ whiteSpace: "pre-wrap" }}>
+              {result.explanation}
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
