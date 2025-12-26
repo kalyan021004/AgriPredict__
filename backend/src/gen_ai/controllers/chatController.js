@@ -1,3 +1,4 @@
+import { chatPipeline } from "../engine/pipelines/chatPipeline.js";
 export async function chatController(req, res) {
   try {
     console.log("USER:", req.user?._id);
@@ -8,7 +9,7 @@ export async function chatController(req, res) {
       return res.status(400).json({ error: "message is required" });
     }
 
-    const answer = await chat(message);
+    const answer = await chatPipeline(message); // ✅ FIX
 
     res.json({ answer });
   } catch (err) {
