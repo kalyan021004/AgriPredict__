@@ -1,19 +1,15 @@
-const BASE = import.meta.env.VITE_API_BASE;
+import api from "./axiosInstance";
 
+/* =========================
+   REGISTER
+========================= */
 export async function registerUser(data) {
-  const res = await fetch(`${BASE}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  return api.post("/auth/register", data);
 }
 
+/* =========================
+   LOGIN
+========================= */
 export async function loginUser(data) {
-  const res = await fetch(`${BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  return api.post("/auth/login", data);
 }

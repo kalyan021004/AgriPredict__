@@ -3,29 +3,51 @@ import CropHistory from "../../models/CropHistory.js";
 import { explainMLResult } from "../engine/pipelines/hybridPipeline.js";
 
 export async function hybridController(req, res) {
+  // 🔐 Auth safety
+  if (!req.user || !req.user._id) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  let mlResult;
+
+  /* =========================
+     1️⃣ ML PREDICTION (CRITICAL)
+  ========================= */
   try {
-    // 🔐 Auth safety
-    if (!req.user || !req.user._id) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    mlResult = await getCropRecommendation(req.body);
+  } catch (mlErr) {
+    console.error("ML SERVICE FAILED:", mlErr.message);
 
-    // 1️⃣ ML Prediction
-    const mlResult = await getCropRecommendation(req.body);
+    return res.status(503).json({
+      error: "ML service unavailable. Please try again later."
+    });
+  }
 
-    // ✅ Validate ML output
-    if (!mlResult || !mlResult.crop) {
-      throw new Error("Invalid ML result");
-    }
+  // Validate ML output
+  if (!mlResult || !mlResult.crop) {
+    console.error("INVALID ML OUTPUT:", mlResult);
 
-    // 2️⃣ AI Explanation (SAFE)
-    let explanation = "AI explanation currently unavailable.";
-    try {
-      explanation = await explainMLResult(mlResult);
-    } catch (aiErr) {
-      console.error("AI EXPLANATION FAILED:", aiErr.message);
-    }
+    return res.status(500).json({
+      error: "Invalid ML response"
+    });
+  }
 
-    // 3️⃣ Save history (always save ML result)
+  /* =========================
+     2️⃣ GENAI EXPLANATION (OPTIONAL)
+  ========================= */
+  let explanation = "AI explanation currently unavailable.";
+
+  try {
+    explanation = await explainMLResult(mlResult);
+  } catch (aiErr) {
+    console.error("GENAI FAILED:", aiErr.message);
+    // intentionally ignored
+  }
+
+  /* =========================
+     3️⃣ SAVE HISTORY (NON-BLOCKING)
+  ========================= */
+  try {
     await CropHistory.create({
       user: req.user._id,
       input: req.body,
@@ -34,19 +56,16 @@ export async function hybridController(req, res) {
         explanation
       }
     });
-
-    // 4️⃣ Final response (never crashes frontend)
-    return res.json({
-      crop: mlResult,
-      explanation
-    });
-
-  } catch (err) {
-    console.error("HYBRID ERROR:", err.message);
-    console.error(err.stack);
-
-    return res.status(500).json({
-      error: "Crop recommendation failed"
-    });
+  } catch (dbErr) {
+    console.error("DB SAVE FAILED:", dbErr.message);
+    // do NOT fail request
   }
+
+  /* =========================
+     4️⃣ FINAL RESPONSE
+  ========================= */
+  return res.json({
+    crop: mlResult,
+    explanation
+  });
 }

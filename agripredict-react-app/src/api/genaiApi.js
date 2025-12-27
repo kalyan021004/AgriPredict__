@@ -1,106 +1,45 @@
+import api from "./axiosInstance";
+/* =========================
+   CROP HYBRID (ML + AI)
+========================= */
+export async function cropAPI(data) {
+  const res = await api.post("/genai/hybrid", data);
 
-const BASE = import.meta.env.VITE_API_BASE;
+  if (!res.crop) {
+    throw new Error("Invalid response from server");
+  }
+
+  return res;
+}
+
+/* =========================
+   AI CHAT
+========================= */
+export async function chatAPI(message) {
+  return api.post("/genai/chat", { message });
+}
+
+/* =========================
+   CROP HISTORY
+========================= */
+export async function getCropHistory() {
+  return api.get("/genai/crop-history");
+}
 
 /* =========================
    DISEASE (TEXT)
 ========================= */
 export async function diseaseAPI(data) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${BASE}/genai/disease`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(data)
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.error || "Disease detection failed");
-  }
-
-  return json;
+  return api.post("/genai/disease", data);
 }
 
 /* =========================
    DISEASE (IMAGE)
 ========================= */
 export async function diseaseImageAPI(formData) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${BASE}/genai/disease-image`, {
-    method: "POST",
+  return api.post("/genai/disease-image", formData, {
     headers: {
-      Authorization: `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.error || "Image detection failed");
-  }
-
-  return json;
-}
-
-export async function cropAPI(data) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${BASE}/genai/hybrid`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(data)
-  });
-
-  const json = await res.json();
-
-  // 🔥 IMPORTANT
-  if (!res.ok) {
-    throw new Error(json.error || "Server error");
-  }
-
-  if (!json.crop) {
-    throw new Error("Invalid response from server");
-  }
-
-  return json;
-}
-
-/* AI Chat */
-export async function chatAPI(message) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${BASE}/genai/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ message })
-  });
-
-  return res.json();
-}
-
-/* Crop History */
-export async function getCropHistory() {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(`${BASE}/genai/crop-history`, {
-    headers: {
-      Authorization: `Bearer ${token}`
+      "Content-Type": "multipart/form-data"
     }
   });
-
-  return res.json();
 }
-
-
